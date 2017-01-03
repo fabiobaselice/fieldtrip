@@ -49,12 +49,12 @@ function [cfg] = ft_movieplotTFR(cfg, data)
 % this file is part of fieldtrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
-%    FieldTrip is free software: you can redistribute it and/or modify
+%    fieldtrip is free software: you can redistribute it and/or modify
 %    it under the terms of the gnu general public license as published by
 %    the free software foundation, either version 3 of the license, or
 %    (at your option) any later version.
 %
-%    FieldTrip is distributed in the hope that it will be useful,
+%    fieldtrip is distributed in the hope that it will be useful,
 %    but without any warranty; without even the implied warranty of
 %    merchantability or fitness for a particular purpose.  see the
 %    gnu general public license for more details.
@@ -353,7 +353,7 @@ else
       indx = cfg.movietime;
       for iFrame = 1:floor(size(parameter, 2)/cfg.samperframe)
         indy = ((iFrame-1)*cfg.samperframe+1):iFrame*cfg.samperframe;
-        datavector = reshape(mean(parameter(:, indy,indx), 2), [size(parameter,1) 1]);
+        datavector = squeeze(mean(parameter(:, indy,indx), 2));
         datamatrix = griddata(chanx, chany, datavector, xdata, ydata, 'v4');
         set(hs, 'cdata',  datamatrix + nanmask);
         F(iFrame) = getframe;
@@ -362,7 +362,7 @@ else
       indy = cfg.moviefreq;
       for iFrame = 1:floor(size(parameter, 3)/cfg.samperframe)
         indx = ((iFrame-1)*cfg.samperframe+1):iFrame*cfg.samperframe;
-        datavector = reshape(mean(parameter(:, indy,indx), 3), [size(parameter,1) 1]);
+        datavector = squeeze(mean(parameter(:, indy,indx), 3));
         datamatrix = griddata(chanx, chany, datavector, xdata, ydata, 'v4');
         set(hs, 'cdata',  datamatrix + nanmask);
         F(iFrame) = getframe;

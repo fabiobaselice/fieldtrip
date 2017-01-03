@@ -1,25 +1,21 @@
-/** Simple C++ class for managing ASCII requests from a TCP port.
-
-	(C) 2010 S. Klanke
-*/
+#include <StringServer.h>
 
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 
-#include <StringServer.h>
+#ifdef WIN32 
 
-#ifdef WIN32
+#include <windows.h>
+#define socklen_t       int
 
 #ifndef SD_BOTH
 #define SD_BOTH   0x02
 #endif
 
-#include <windows.h>
-#define socklen_t       int
 #define shutdown_rw(s)  shutdown(s, SD_BOTH)
 
-#else // Linux and OS X
+#else
 
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -57,7 +53,7 @@ StringServer::StringServer(int bufSize) {
 	listening = false;
 	numClients = 0;
 	maxFD = 0;
-
+	
 	if (numStringServers++ == 0) {
 		#ifdef WIN32
 		WSADATA wsa = {0,0};
@@ -72,7 +68,7 @@ StringServer::~StringServer() {
 	stopListening();
 	delete[] client;
 	delete server;
-
+	
 	if (--numStringServers == 0) {
 		#ifdef WIN32
 		WSACleanup();
@@ -82,7 +78,7 @@ StringServer::~StringServer() {
 
 void StringServer::stopListening() {
 	if (!listening) return;
-
+	
 	for (int i=0;i<numClients;i++) {
 		shutdown_rw(client[i]->sock);
 		closesocket(client[i]->sock);
@@ -97,7 +93,7 @@ void StringServer::stopListening() {
 
 bool StringServer::startListening(int port) {
 	if (listening) return false;
-
+	
 	// setup TCP socket
 	struct sockaddr_in sa;
 	server->sock = socket(PF_INET, SOCK_STREAM, 0);
@@ -122,7 +118,7 @@ bool StringServer::startListening(int port) {
 		closesocket(server->sock);
 		return false;
 	}
-
+	
 	/* place the socket in non-blocking mode, required to do thread cancelation */
 #ifdef WIN32
 	{
@@ -145,9 +141,9 @@ bool StringServer::startListening(int port) {
 		closesocket(server->sock);
 		return false;
 	}
-
+	
 	listening = true;
-
+	
 	return true;
 }
 
@@ -157,15 +153,15 @@ int StringServer::checkRequests(StringRequestHandler& handler, int milliSeconds)
 	fd_set writeSet;
 	struct timeval tv;
 	int requests = 0;
-
+	
 	if (!listening) return -1;
-
+	
 	tv.tv_sec = milliSeconds / 1000;
 	tv.tv_usec = (milliSeconds % 1000) * 1000;
-
+	
 	FD_ZERO(&readSet);
 	FD_ZERO(&writeSet);
-
+	
 	if (numClients < MAXCLIENTS) {
 		FD_SET(server->sock, &readSet);
 	}
@@ -173,11 +169,11 @@ int StringServer::checkRequests(StringRequestHandler& handler, int milliSeconds)
 		FD_SET(client[i]->sock, &readSet);
 		if (client[i]->resp.size() > 0) FD_SET(client[i]->sock, &writeSet);
 	}
-
+	
 	int n = select(maxFD+1, &readSet, &writeSet, NULL, &tv);
-
+	
 	if (n==0) return 0;
-
+	
 	// first iterate through client connections
 	int idx = 0;
 	while (idx<numClients) {
@@ -191,29 +187,29 @@ int StringServer::checkRequests(StringRequestHandler& handler, int milliSeconds)
 				closeClient(idx);
 				continue;
 			}
-
+			
 			cli->req.append(rcvBuf, r);
 			// startResponse = "empty before" and "non-empty now"
 			startResponse &= checkCompletion(handler, cli);
 		}
-
+		
 		if (FD_ISSET(cli->sock, &writeSet) || startResponse) {
 			int r = send(cli->sock, cli->resp.data(), cli->resp.size(), 0);
 			if (r>0) {
 				cli->resp.erase(0,r);
 			}
 		}
-
+		
 		++idx;
 	}
-
+	
 	// accept new connection, if any
 	if (FD_ISSET(server->sock, &readSet)) {
 		struct sockaddr_in sa;
 		socklen_t size_sa = sizeof(sa);
-
+			
 		SOCKET c = accept(server->sock, (struct sockaddr *)&sa, &size_sa);
-
+			
 		if (c == INVALID_SOCKET) {
 			perror("StringServer::checkRequests -> accept");
 		} else {
@@ -221,13 +217,13 @@ int StringServer::checkRequests(StringRequestHandler& handler, int milliSeconds)
 			client[numClients]->req.reserve(defaultBufSize);
 			client[numClients]->sock = c;
 			numClients++;
-
+			
 			#ifndef WIN32
 			if (c > maxFD) maxFD = c;
 			#endif
 		}
 	}
-
+	
 	return requests;
 }
 
@@ -236,7 +232,7 @@ bool StringServer::checkCompletion(StringRequestHandler& handler, StringServerCl
 	while (1) {
 		size_t p0 = cli->req.find('\n');
 		if (p0 == cli->req.npos) return newResp;
-
+	
 		std::string out(cli->req, 0, p0);
 		std::string in = handler.handleStringRequest(out);
 		cli->req.erase(0, p0+1);
@@ -251,7 +247,7 @@ void StringServer::closeClient(int idx) {
 	shutdown_rw(client[idx]->sock);
 	closesocket(client[idx]->sock);
 	delete client[idx];
-
+	
 	if (idx < numClients - 1) {
 		client[idx] = client[numClients-1];
 	} else {

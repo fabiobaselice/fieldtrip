@@ -75,30 +75,19 @@ srf.ConvCurvCol = fread(FileID, 4, 'float');
 srf.ConcCurvCol = fread(FileID, 4, 'float');
 
 % Read mesh color (sequence of color indices, one for each vertex)
-srf.MeshCol = fread(FileID, srf.NoVertices, 'int32');
+srf.MeshCol = fread(FileID, [srf.NoVertices 4], 'int');
 
 % Read nearest neighbour data for each vertex
-srf.NrNeighbours = [];
-srf.Neighbours = []; 
-for CurrVertex=1:srf.NoVertices
-    srf.NrNeighbours(CurrVertex) = fread(FileID, 1, 'int32');
-    CurrNeighs = fread(FileID, srf.NrNeighbours(CurrVertex), 'int32');
-    srf.Neighbours = [srf.Neighbours; CurrNeighs];
-end
+srf.Neighbour = []; % FIXME
 
 % Read sequence of three indices to define vertices of each triangle
-srf.Triangles = [];
-srf.Triangles = fread(FileID, srf.NoTriangles * 3, 'int32');
-srf.Triangles = reshape(srf.Triangles, 3, [])';
+srf.Triangles = []; % FIXME
 
 % Read number of triangle strip elements
-srf.NoTriangleStripElems = fread(FileID, [1 1], 'int');
+srf.NoTriangleStripElems = 0; % FIXME
 
 % Read sequence of strip elements
-if srf.NoTriangleStripElems > 0
-    srf.SequenceStripElements = fread(...
-        FileID, [1 NrOfTriangleStripElements], 'int32');
-end;
+srf.SequenceStripElements = []; % FIXME
 
 % Read name of MTC file
 srf.MTCfile = []; % FIXME

@@ -70,10 +70,8 @@ endif
 
 TARGETS = $(BINDIR)/amp2ft
 all: $(TARGETS)
-
-AmpServerClient.o: AmpServerClient.h
-
-$(BINDIR)/amp2ft: amp2ft.o AmpServerClient.o
+	
+$(BINDIR)/amp2ft: amp2ft.o AmpServerClient.o AmpServerClient.h
 	$(CXX) -o $@ $^ $(LDFLAGS) $(LDLIBS) $(CXXFLAGS)
 
 clean:

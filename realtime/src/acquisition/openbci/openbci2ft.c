@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016, Robert Oostenveld
+ * Copyright (C) 2015, Robert Oostenveld
  *
  * Donders Institute for Brain, Cognition and Behaviour,
  * Centre for Cognitive Neuroimaging, Radboud University,
@@ -36,8 +36,6 @@ typedef struct {
     const char *reset;
     const char *datalog;
     const char *testsignal;
-    const char *sample;
-    const char *unwrap;
     const char *timestamp;
     const char *timeref;
 
@@ -52,7 +50,6 @@ typedef struct {
     const char *enable_chan9;
     const char *enable_chan10;
     const char *enable_chan11;
-
     const char *label_chan1;
     const char *label_chan2;
     const char *label_chan3;
@@ -64,9 +61,7 @@ typedef struct {
     const char *label_chan9;
     const char *label_chan10;
     const char *label_chan11;
-    const char *label_chan12; /* this is for the sample    */
-    const char *label_chan13; /* this is for the timestamp */
-
+    const char *label_chan12; /* this is for the timestamp */
     const char *setting_chan1;
     const char *setting_chan2;
     const char *setting_chan3;
@@ -75,7 +70,6 @@ typedef struct {
     const char *setting_chan6;
     const char *setting_chan7;
     const char *setting_chan8;
-
     const char *impedance_chan1;
     const char *impedance_chan2;
     const char *impedance_chan3;
@@ -102,7 +96,7 @@ static char usage[] =
         "Example use:\n" \
         "   openbci2ft COM3:                 # start a local buffer on port 1972\n" \
         "   openbci2ft COM3: - 1234          # start a local buffer on port 1234\n" \
-        "   openbci2ft COM3: serverpc 1234   # connect to remote buffer running on server PC\n" \
+        "   openbci2ft COM3: mentat002 1234  # connect to remote buffer\n" \
         "\n" \
         ;
 #else
@@ -121,13 +115,13 @@ static char usage[] =
         "Example use:\n" \
         "   openbci2ft /dev/tty.usbserial-DN0094FY                 # start a local buffer on port 1972\n" \
         "   openbci2ft /dev/tty.usbserial-DN0094FY - 1234          # start a local buffer on port 1234\n" \
-        "   openbci2ft /dev/tty.usbserial-DN0094FY serverpc 1234   # connect to remote buffer running on server PC\n" \
+        "   openbci2ft /dev/tty.usbserial-DN0094FY mentat002 1234  # connect to remote buffer\n" \
         "\n" \
         ;
 #endif
 
 int serialWriteSlow(SerialPort *SP, int size, void *buffer) {
-    int i, retval = 0;
+    int i, retval = 0; 
     for (i=0; i<size; i++) {
         retval += serialWrite(SP, 1, buffer+i);
         usleep(100000);
@@ -153,10 +147,6 @@ static int iniHandler(void* external, const char* section, const char* name, con
         local->datalog = strdup(value);
     } else if (MATCH("General", "testsignal")) {
         local->testsignal = strdup(value);
-    } else if (MATCH("General", "sample")) {
-        local->sample = strdup(value);
-    } else if (MATCH("General", "unwrap")) {
-        local->unwrap = strdup(value);
     } else if (MATCH("General", "timestamp")) {
         local->timestamp = strdup(value);
     } else if (MATCH("General", "timeref")) {
@@ -209,8 +199,6 @@ static int iniHandler(void* external, const char* section, const char* name, con
         local->label_chan11 = strdup(value);
     } else if (MATCH("ChannelLabel", "chan12")) {
         local->label_chan12 = strdup(value);
-    } else if (MATCH("ChannelLabel", "chan13")) {
-        local->label_chan13 = strdup(value);
 
         /* only for channel 1-8, not for accelerometers */
     } else if (MATCH("ChannelSetting", "chan1")) {
@@ -260,7 +248,7 @@ void abortHandler(int sig) {
 }
 
 int main(int argc, char *argv[]) {
-    int n, i, c, prevsample = 0, thissample = 0, count = 0, sample = 0, chan = 0, status = 0, verbose = 0, labelSize;
+    int n, i, c, count = 0, sample = 0, chan = 0, status = 0, verbose = 0, labelSize;
     unsigned char buf[OPENBCI_BUFLEN], byte;
     char *labelString;
     SerialPort SP;
@@ -280,7 +268,7 @@ int main(int argc, char *argv[]) {
     data_t        *data     = NULL;
     ft_chunkdef_t *label    = NULL;
 
-    /* this structure contains the configuration details */
+    /* this contains the configuration details */
     configuration config;
 
     /* configure the default settings */
@@ -291,9 +279,7 @@ int main(int argc, char *argv[]) {
     config.reset         = strdup("on");
     config.datalog       = strdup("off");
     config.testsignal    = strdup("off");
-    config.sample        = strdup("on");
-    config.unwrap        = strdup("off");
-    config.timestamp     = strdup("off");
+    config.timestamp     = strdup("on");
     config.timeref       = strdup("start");
 
     config.enable_chan1  = strdup("on");
@@ -319,8 +305,7 @@ int main(int argc, char *argv[]) {
     config.label_chan9  = strdup("AccelerationX");
     config.label_chan10 = strdup("AccelerationY");
     config.label_chan11 = strdup("AccelerationZ");
-    config.label_chan12 = strdup("Sample");
-    config.label_chan13 = strdup("TimeStamp");
+    config.label_chan12 = strdup("TimeStamp");
 
     config.setting_chan1  = strdup("x1060110X");
     config.setting_chan2  = strdup("x2060110X");
@@ -341,7 +326,7 @@ int main(int argc, char *argv[]) {
     config.impedance_chan8  = strdup("z800Z");
 
     if (argc<2) {
-        printf("%s", usage);
+        printf(usage);
         exit(0);
     }
 
@@ -371,8 +356,7 @@ int main(int argc, char *argv[]) {
         host.port = config.port;
     }
 
-    /* count the number of channels that should be sent */
-   #define ISTRUE(s) strcasecmp(s, "on")==0
+#define ISTRUE(s) strcasecmp(s, "on")==0
     nchans = 0;
     if (ISTRUE(config.enable_chan1))
         nchans++;
@@ -396,8 +380,6 @@ int main(int argc, char *argv[]) {
         nchans++;
     if (ISTRUE(config.enable_chan11))
         nchans++;
-    if (ISTRUE(config.sample))
-        nchans++;
     if (ISTRUE(config.timestamp))
         nchans++;
 
@@ -407,7 +389,6 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "openbci2ft: blocksize    =  %d\n", config.blocksize);
     fprintf(stderr, "openbci2ft: reset        =  %s\n", config.reset);
     fprintf(stderr, "openbci2ft: datalog      =  %s\n", config.datalog);
-    fprintf(stderr, "openbci2ft: sample       =  %s\n", config.sample);
     fprintf(stderr, "openbci2ft: timestamp    =  %s\n", config.timestamp);
     fprintf(stderr, "openbci2ft: testsignal   =  %s\n", config.testsignal);
 
@@ -454,6 +435,7 @@ int main(int argc, char *argv[]) {
     header->def->data_type = DATATYPE_FLOAT32;
     header->def->bufsize   = 0;
 
+    /* FIXME add the channel names */
     labelSize = 0; /* count the number of bytes required */
     if (ISTRUE (config.enable_chan1))
         labelSize += strlen (config.label_chan1) + 1;
@@ -477,17 +459,15 @@ int main(int argc, char *argv[]) {
         labelSize += strlen (config.label_chan10) + 1;
     if (ISTRUE (config.enable_chan11))
         labelSize += strlen (config.label_chan11) + 1;
-    if (ISTRUE (config.sample))
-        labelSize += strlen (config.label_chan12) + 1;
     if (ISTRUE (config.timestamp))
-        labelSize += strlen (config.label_chan13) + 1;
+        labelSize += strlen (config.label_chan12) + 1;
 
     if (verbose > 0)
         fprintf (stderr, "openbci2ft: labelSize = %d\n", labelSize);
 
     /* go over all channels for a 2nd time, now copying the strings to the destination */
     labelString = (char *) malloc (labelSize * sizeof(char));
-    labelSize   = 0;
+    labelSize   = 0; 
     if (ISTRUE (config.enable_chan1)) {
         strcpy (labelString+labelSize, config.label_chan1);
         labelSize += strlen (config.label_chan1) + 1;
@@ -532,13 +512,9 @@ int main(int argc, char *argv[]) {
         strcpy (labelString+labelSize, config.label_chan11);
         labelSize += strlen (config.label_chan11) + 1;
     }
-    if (ISTRUE (config.sample)) {
+    if (ISTRUE (config.timestamp)) {
         strcpy (labelString+labelSize, config.label_chan12);
         labelSize += strlen (config.label_chan12) + 1;
-    }
-    if (ISTRUE (config.timestamp)) {
-        strcpy (labelString+labelSize, config.label_chan13);
-        labelSize += strlen (config.label_chan13) + 1;
     }
 
     /* add the channel label chunk to the header */
@@ -568,12 +544,14 @@ int main(int argc, char *argv[]) {
     status = clientrequest (ftSocket, request, &response);
     if (verbose > 0)
         fprintf (stderr, "openbci2ft: clientrequest returned %d\n", status);
-    if (status) {
+    if (status)
+    {
         fprintf (stderr, "openbci2ft: could not send request to buffer\n");
         exit (1);
     }
 
-    if (status || response == NULL || response->def == NULL) {
+    if (status || response == NULL || response->def == NULL)
+    {
         fprintf (stderr, "openbci2ft: error in %s on line %d\n", __FILE__,
                 __LINE__);
         exit (1);
@@ -581,7 +559,8 @@ int main(int argc, char *argv[]) {
 
     cleanup_message (&request);
 
-    if (response->def->command != PUT_OK) {
+    if (response->def->command != PUT_OK)
+    {
         fprintf (stderr, "openbci2ft: error in 'put header' request.\n");
         exit (1);
     }
@@ -590,13 +569,14 @@ int main(int argc, char *argv[]) {
 
     /* open the serial port */
     fprintf (stderr, "openbci2ft: opening serial port ...\n");
-    if (!serialOpenByName (&SP, config.serial)) {
-
+    if (!serialOpenByName (&SP, config.serial))
+    {
         fprintf (stderr, "Could not open serial port %s\n", config.serial);
         return 1;
     }
 
-    if (!serialSetParameters (&SP, 115200, 8, 0, 0, 0)) {
+    if (!serialSetParameters (&SP, 115200, 8, 0, 0, 0))
+    {
         fprintf (stderr, "Could not modify serial port parameters\n");
         return 1;
     }
@@ -616,10 +596,12 @@ int main(int argc, char *argv[]) {
 
     /* wait for '$$$' which indicates that the OpenBCI has been initialized */
     c = 0;
-    while (c != 3) {
+    while (c != 3)
+    {
         usleep (1000);
         n = serialRead (&SP, 1, &byte);
-        if (n == 1) {
+        if (n == 1)
+        {
             if (byte == '$')
                 c++;
             else
@@ -645,7 +627,8 @@ int main(int argc, char *argv[]) {
         serialWrite (&SP, 1, "K");
     else if (strcasecmp (config.datalog, "24hr") == 0)
         serialWrite (&SP, 1, "L");
-    else if (strcasecmp (config.datalog, "off") != 0) {
+    else if (strcasecmp (config.datalog, "off") != 0)
+    {
         fprintf (stderr, "Incorrect specification of datalog\n");
         return 1;
     }
@@ -671,7 +654,8 @@ int main(int argc, char *argv[]) {
         serialWrite (&SP, 1, "[");
     else if (strcasecmp (config.testsignal, "2xFast") == 0)
         serialWrite (&SP, 1, "]");
-    else if (strcasecmp (config.testsignal, "off") != 0) {
+    else if (strcasecmp (config.testsignal, "off") != 0)
+    {
         fprintf (stderr, "Incorrect specification of testsignal\n");
         return 1;
     }
@@ -687,32 +671,40 @@ int main(int argc, char *argv[]) {
     serialWrite (&SP, 1, "b");
 
     /* determine the reference time for the timestamps */
-    if (strcasecmp (config.timeref, "start") == 0) {
+    if (strcasecmp (config.timeref, "start") == 0)
+    {
         /* since the start of the acquisition */
         get_monotonic_time (&tic, TIMESTAMP_REF_BOOT);
     }
-    else if (strcasecmp (config.timeref, "boot") == 0) {
+    else if (strcasecmp (config.timeref, "boot") == 0)
+    {
         /* since the start of the day */
         tic.tv_sec = 0;
         tic.tv_nsec = 0;
     }
-    else if (strcasecmp (config.timeref, "epoch") == 0) {
+    else if (strcasecmp (config.timeref, "epoch") == 0)
+    {
         /* since the start of the epoch, i.e. 1-1-1970 */
         tic.tv_sec = 0;
         tic.tv_nsec = 0;
     }
-    else {
-        fprintf (stderr, "Incorrect specification of timeref, should be 'start', 'day' or 'epoch'\n");
+    else
+    {
+        fprintf (stderr,
+                "Incorrect specification of timeref, should be 'start', 'day' or 'epoch'\n");
         return 1;
     }
 
-    while (keepRunning) {
+    while (keepRunning)
+    {
 
         sample = 0;
-        while (sample < config.blocksize) {
+        while (sample < config.blocksize)
+        {
             /* wait for the first byte of the following packet */
             buf[0] = 0;
-            while (buf[0] != 0xA0) {
+            while (buf[0] != 0xA0)
+            {
                 if (serialInputPending (&SP))
                     n = serialRead (&SP, 1, buf);
                 else
@@ -752,7 +744,8 @@ int main(int argc, char *argv[]) {
                 else
                     usleep (1000);
 
-            if (verbose > 1) {
+            if (verbose > 1)
+            {
                 for (i = 0; i < OPENBCI_BUFLEN; i++)
                     printf ("%02x ", buf[i]);
                 printf ("\n");
@@ -802,18 +795,8 @@ int main(int argc, char *argv[]) {
                 ((FLOAT32_T *) (data->buf))[nchans * sample + (chan++)] =
                     OPENBCI_CALIB2 * (buf[28] << 24 | buf[31] << 16) / 32767;
 
-            if (ISTRUE (config.sample)) {
-                if (ISTRUE (config.unwrap)) {
-                     thissample += (buf[1] < prevsample ? 255 + buf[1]-prevsample : buf[1]-prevsample);
-                     prevsample  = buf[1];
-                }
-                else {
-                  thissample = buf[1];
-                }
-                ((FLOAT32_T *) (data->buf))[nchans * sample + (chan++)] = thissample;
-            } 
-
-            if (ISTRUE (config.timestamp)) {
+            if (ISTRUE (config.timestamp))
+            {
                 if (strcasecmp (config.timeref, "start") == 0)
                     get_monotonic_time (&toc, TIMESTAMP_REF_BOOT);
                 else if (strcasecmp (config.timeref, "boot") == 0)
@@ -844,13 +827,15 @@ int main(int argc, char *argv[]) {
         status = clientrequest (ftSocket, request, &response);
         if (verbose > 0)
             fprintf (stderr, "openbci2ft: clientrequest returned %d\n", status);
-        if (status) {
+        if (status)
+        {
             fprintf (stderr, "openbci2ft: error in %s on line %d\n", __FILE__,
                     __LINE__);
             exit (1);
         }
 
-        if (status) {
+        if (status)
+        {
             fprintf (stderr, "openbci2ft: error in %s on line %d\n", __FILE__,
                     __LINE__);
             exit (1);
@@ -859,7 +844,9 @@ int main(int argc, char *argv[]) {
         /* FIXME do someting with the response, i.e. check that it is OK */
         cleanup_message (&request);
 
-        if (response == NULL || response->def == NULL || response->def->command != PUT_OK) {
+        if (response == NULL || response->def == NULL
+                || response->def->command != PUT_OK)
+        {
             fprintf (stderr, "Error when writing samples.\n");
         }
         cleanup_message (&response);
@@ -872,9 +859,13 @@ int main(int argc, char *argv[]) {
     cleanup_data (&data);
 
     if (ftSocket > 0)
+    {
         close_connection (ftSocket);
+    }
     else
+    {
         ft_stop_buffer_server (ftServer);
+    }
 
     return 0;
 }				/* main */

@@ -77,7 +77,7 @@ end
 
 hdr = [];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% create a FieldTrip compatible header structure
+% create a fieldtrip compatible header structure
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 hdr.Fs                 = cfg.fsample;								  
 hdr.nChans             = cfg.channel;					                  

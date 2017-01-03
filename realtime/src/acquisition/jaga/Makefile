@@ -17,7 +17,7 @@ CPPDIR = $(FTBUFFER)/cpp
 CPPOBJ = 
 
 # defaults, might be overwritten further down
-CFLAGS = -I. -I$(FTBUFFER)/src -I$(FIELDTRIP)/realtime/src/external/inih/ -I$(CPPDIR)
+CFLAGS = -I$(FTBUFFER)/src -I. -I$(CPPDIR)
 CFLAGS += -Wunused -Wall -pedantic -O3 -g 
 CXXFLAGS = $(CFLAGS)
 LDFLAGS = -L$(FTBUFFER)/src
@@ -44,9 +44,6 @@ ifeq "$(UNAME)" "Linux"
 		BINDIR = $(FIELDTRIP)/realtime/bin/glnxa64
 	endif
 	ifeq "$(MACHINE)" "armv6l"
-		BINDIR = $(FIELDTRIP)/realtime/bin/raspberrypi
-	endif
-	ifeq "$(MACHINE)" "armv7l"
 		BINDIR = $(FIELDTRIP)/realtime/bin/raspberrypi
 	endif
 endif
@@ -81,11 +78,10 @@ all: $(TARGETS)
 
 $(TARGETS):
 
-$(BINDIR)/%$(SUFFIX): ini.o %.o
-	$(CC) -o $@ $^ $(LDFLAGS) $(LDLIBS)
+$(BINDIR)/%$(SUFFIX): %.o
+	$(CXX) -o $@ $^ $(LDFLAGS) $(LDLIBS)
 
-ini.o: $(FIELDTRIP)/realtime/src/external/inih/ini.c
-	$(CC) $(CFLAGS) -c -o $@ $^ 
+$(BINDIR)/modeeg_setupbluesmirf$(SUFFIX): LDLIBS=
 
 clean:
 	$(RM) *.o $(call fixpath, $(TARGETS))

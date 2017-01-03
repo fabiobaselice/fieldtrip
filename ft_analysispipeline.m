@@ -350,18 +350,11 @@ for i=1:numel(pipeline)
     if isfield(cfg, 'previous')
       cfg = rmfield(cfg, 'previous');
     end
-    % use a helper function to remove uninteresting fields
-    cfg = removefields(cfg, ignorefields('pipeline'), 'recursive', 'yes');
-    % use a helper function to remove too large fields
-    cfg.checksize = 3000;
-    cfg = ft_checkconfig(cfg, 'checksize', 'yes');
-    cfg = rmfield(cfg, 'checksize');
     script = printstruct('cfg', cfg);
     uidisplaytext(script, pipeline(i).name);
     break;
   end
 end
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
@@ -494,6 +487,7 @@ uimenu(ftmenu, 'Label', 'About',  'Separator', 'on', 'Callback', @menu_about);
 % uimenu(ftmenu2, 'Label', 'Share within DCCN');
 % uimenu(ftmenu2, 'Label', 'Share on PasteBin.com');
 % uimenu(ftmenu2, 'Label', 'Share on MyExperiment.org');
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -666,7 +660,7 @@ for i=1:length(pipeline)
     label = sprintf('%s\\n', label{:});
     label = label(1:end-2);
   end
-  fprintf(fid, '%d [label="%s",shape=box,fontsize=%d,URL="http://www.fieldtriptoolbox.org/reference/%s"]\n', i, label, cfg.fontsize, pipeline(i).name);
+  fprintf(fid, '%d [label="%s",shape=box,fontsize=%d,URL="http://fieldtrip.fcdonders.nl/reference/%s"]\n', i, label, cfg.fontsize, pipeline(i).name);
 end
 
 fprintf(fid, '}\n');
@@ -753,6 +747,7 @@ fid = fopen(filename, 'w');
 fwrite(fid, htmlfile, 'uchar');
 fclose(fid);
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -774,3 +769,4 @@ cfghtml = strrep(cfghtml, sprintf('\r'), '\r');
 cfghtml = strrep(cfghtml, sprintf('\n'), '\n');
 cfghtml = strrep(cfghtml, sprintf('\t'), '\t');
 cfghtml = strrep(cfghtml, '"', '\"');
+

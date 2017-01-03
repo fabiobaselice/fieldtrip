@@ -1,12 +1,12 @@
 ----------------------------------------------------------------------
-= Iso2mesh: an image-based 3D surface and volumetric mesh generator  =
+= iso2mesh: an image-based 3D surface and volumetric mesh generator  =
 ----------------------------------------------------------------------
 
-*Author: Qianqian Fang <q.fang at neu.edu>
-      Department of Bioengineering
-      Northeastern University
-      360 Huntington Ave, Boston, MA 02115
-*Version: 1.7.9 (Deviled Egg - beta)
+*Author: Qianqian Fang <fangq at nmr.mgh.harvard.edu>
+      Martinos Center for Biomedical Imaging
+      Massachusetts General Hospital (Harvard Medical School)
+      Bldg. 149, 13th St., Charlestown, MA 02148
+*Version: 1.5.0 (Laba Porridge)
 *License: GPL v2 or later (see COPYING) 
       (this license does not cover the binaries under the bin/ 
        directory, see Section III for more details)
@@ -125,8 +125,9 @@ below:
 === bin/tetgen ===
 
 *Summary:tetgen is a compact and fast 3D mesh generator
-*License: GNU Affero General Public License version 3
-*URL: http://tetgen.org/
+*License: ('''IMPORTANT''') tetgen is free for academic research \
+and non-commertial uses only.
+*URL: http://tetgen.berlios.de/
 *Author: Hang Si <si at wias-berlin.de>
 ::Research Group: Numerical Mathematics and Scientific Computing
 ::Weierstrass Institute for Applied Analysis and Stochastics

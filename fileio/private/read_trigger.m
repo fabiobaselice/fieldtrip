@@ -63,11 +63,7 @@ if isempty(endsample)
 end
 
 % read the trigger channel as raw data, can safely assume that it is continuous
-if ~isempty(chanindx)
-  dat = ft_read_data(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx, 'checkboundary', 0);
-else
-  dat = zeros(0, endsample-begsample+1);
-end
+dat = ft_read_data(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx, 'checkboundary', 0);
 
 % start with an empty event structure
 event = [];

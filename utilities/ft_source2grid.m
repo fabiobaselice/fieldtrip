@@ -33,7 +33,17 @@ function [grid] = ft_source2grid(source)
 
 ft_defaults
 
-grid = keepfields(source, {'pos', 'tri', 'inside', 'outside', 'xgrid', 'ygrid', 'zgrid', 'dim'});
+% these are always supposed to be present
+grid.pos     = source.pos;
+grid.inside  = source.inside;
+grid.outside = source.outside;
+
+% these are optional
+try, grid.xgrid   = source.xgrid; end
+try, grid.ygrid   = source.ygrid; end
+try, grid.zgrid   = source.zgrid; end
+try, grid.dim     = source.dim;   end
+try, grid.tri     = source.tri;   end % only in case of a tesselated/triangulated cortical sheet source model
 
 if ~isfield(grid, 'dim') && isfield(grid, 'xgrid') && isfield(grid, 'ygrid') && isfield(grid, 'zgrid')
   grid.dim = [length(grid.xgrid) length(grid.ygrid) length(grid.zgrid)];
@@ -47,8 +57,6 @@ elseif issubfield(source, 'trial.filter')
   error('single trial filters are not supported here');
 end
 
-if issubfield(source, 'leadfield')
+if isfield(source, 'leadfield')
   grid.leadfield = source.leadfield;
-elseif issubfield(source, 'avg.leadfield')
-  grid.leadfield = source.avg.leadfield;
 end

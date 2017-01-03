@@ -115,7 +115,7 @@ if Vonly
     end
 end
 
-% convert the header into FieldTrip style
+% convert the header into fieldtrip style
 hdr.label       = label(:);
 hdr.nChans      = length(label);
 hdr.nSamplesPre = 0;

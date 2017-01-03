@@ -4,7 +4,7 @@ function savemedit(node,face,elem,fname)
 %
 % save a surface or tetrahedral mesh to Medit format
 %
-% author: Qianqian Fang, <q.fang at neu.edu>
+% author: Qianqian Fang (fangq<at> nmr.mgh.harvard.edu)
 % date: 2010/10/30
 %
 % input:

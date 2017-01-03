@@ -4,7 +4,7 @@ function [node,elem,face]=surf2mesh(v,f,p0,p1,keepratio,maxvol,regions,holes,for
 %
 % create quality volumetric mesh from isosurface patches
 %
-% author: Qianqian Fang, <q.fang at neu.edu>
+% author: Qianqian Fang (fangq<at> nmr.mgh.harvard.edu)
 % date: 2007/11/24
 %
 % input parameters:
@@ -66,11 +66,6 @@ elseif(nargin==7)
 	holes=[];
 end
 
-if(size(regions,2)>=4 && ~isempty(maxvol))
-    warning('you specified both maxvol and the region based volume constraint,the maxvol setting will be ignored');
-    maxvol=[];
-end
-
 dobbx=0;
 if(nargin>=9)
 	dobbx=forcebox;
@@ -91,15 +86,11 @@ end
 deletemeshfile(mwpath('post_vmesh.1.*'));
 fprintf(1,'creating volumetric mesh from a surface mesh ...\n');
 
-try
-    cmdopt=evalin('caller','ISO2MESH_TETGENOPT');
-catch
-    try
-        cmdopt=evalin('base','ISO2MESH_TETGENOPT');
-    catch
-        cmdopt='';
-    end
-end
+fprintf(1,sprintf('\n%s\n%s\n',...
+     'WARNING: the license for "tetgen" is non-free and does not permit commercial use.', ...
+     'Please use the "cgalmesh" or "cgalpoly" options where free-software is desired.'));
+
+cmdopt=getvarfrom({'caller','base'},'ISO2MESH_TETGENOPT');
 if(isempty(cmdopt))
   system([' "' mcpath('tetgen') exesuff '" -A -q1.414a' num2str(maxvol) ' ' moreopt ' "' mwpath('post_vmesh.poly') '"']);
 else

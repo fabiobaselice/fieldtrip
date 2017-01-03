@@ -19,7 +19,6 @@ if nargin<5
 end
 
 [la, mu, dist, proj] = lmoutrn(v1, v2, v3, r);
-
 switch flag
   case 0
     % finished

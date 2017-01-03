@@ -1,8 +1,5 @@
 function test_ft_statfun_correlationT
 
-% WALLTIME 00:20:00
-% MEM 3gb
-
 % A. Stolk, oct 2015
 
 %% simulate simple single-subject timelock structures

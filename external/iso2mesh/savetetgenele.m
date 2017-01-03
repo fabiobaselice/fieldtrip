@@ -4,7 +4,7 @@ function savetetgenele(elem,fname)
 %
 % save a mesh tetrahedral element list to tetgen .ele format
 %
-% author: Qianqian Fang, <q.fang at neu.edu>
+% author: Qianqian Fang (fangq<at> nmr.mgh.harvard.edu)
 %
 % input:
 %      elem: tetrahedral element list, dimension (ne,4)

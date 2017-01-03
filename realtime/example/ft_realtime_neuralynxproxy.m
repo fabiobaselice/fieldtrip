@@ -204,7 +204,7 @@ while again
   end % for objectIndex
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % create a FieldTrip compatible header structure
+  % create a fieldtrip compatible header structure
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   if isempty(hdr) && ~isempty(objectData) && ~isempty(objectData(1))
     hdr.Fs                 = objectData(1).samplingFreqArray(1);  % sampling frequency

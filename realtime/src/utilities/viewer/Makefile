@@ -41,9 +41,6 @@ ifeq "$(UNAME)" "Linux"
 	ifeq "$(MACHINE)" "armv6l"
 		BINDIR = $(FIELDTRIP)/realtime/bin/raspberrypi
 	endif
-	ifeq "$(MACHINE)" "armv7l"
-		BINDIR = $(FIELDTRIP)/realtime/bin/raspberrypi
-	endif
 endif
 
 ifeq "$(UNAME)" "Darwin"
@@ -68,15 +65,15 @@ ifndef BINDIR
 $(error Unsupported platform: $(PLATFORM) :/.)
 endif
 
-TARGETS = $(BINDIR)/viewer$(SUFFIX)
+TARGETS = $(BINDIR)/bufferViewer$(SUFFIX)
 
 ##############################################################################
 all: $(TARGETS)
 
-viewer.o: viewer.cc
-	g++ -c viewer.cc $(CXXFLAGS)
+bufferViewer.o: bufferViewer.cc
+	g++ -c bufferViewer.cc $(CXXFLAGS)
 
-$(BINDIR)/viewer$(SUFFIX): viewer.o ../../buffer/cpp/FtConnection.o
+$(BINDIR)/bufferViewer$(SUFFIX): bufferViewer.o ../../buffer/cpp/FtConnection.o
 	g++ -o $@ $^ $(LDFLAGS)
 
 clean:

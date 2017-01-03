@@ -45,9 +45,6 @@ ifeq "$(UNAME)" "Linux"
 	ifeq "$(MACHINE)" "armv6l"
 	 	BINDIR = $(FIELDTRIP)/realtime/bin/raspberrypi
 	endif
-	ifeq "$(MACHINE)" "armv7l"
-	 	BINDIR = $(FIELDTRIP)/realtime/bin/raspberrypi
-	endif
 	LDFLAGS += -L$(FTBUFFER)/src
  	LDLIBS += $(CPPOBJS) -lbuffer -lpthread -ldl -lportaudio
 endif

@@ -4,7 +4,7 @@ function savetetgennode(node,fname)
 %
 % save a mesh node list to tetgen .node format
 %
-% author: Qianqian Fang, <q.fang at neu.edu>
+% author: Qianqian Fang (fangq<at> nmr.mgh.harvard.edu)
 %
 % input:
 %      node: node coordinates, dimension (nn,3)

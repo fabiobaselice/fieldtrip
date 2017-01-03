@@ -1,8 +1,5 @@
 function test_bug2385
 
-% WALLTIME 00:10:00
-% MEM 1gb
-
 % TEST test_bug2385
 % TEST ft_filetype ft_read_sens
 

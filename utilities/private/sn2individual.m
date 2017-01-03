@@ -34,10 +34,7 @@ if numel(P.Tr)==0,
   warped = ft_warp_apply(T, input);
 else
   % we need the spm_dctmtx function for the nonlinear case
-  hasSPM8 = ft_hastoolbox('spm8', 3);
-  if(~hasSPM8)
-      ft_hastoolbox('spm12',1);
-  end
+  ft_hastoolbox('spm8', 1);
 
   dim  = P.VG.dim(1:3);
   xyz  = ft_warp_apply(inv(P.VG.mat), input); % goes into voxel coordinates

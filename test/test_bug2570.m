@@ -8,9 +8,9 @@ function test_bug2570
 
 montage = [];
 montage.tra = 1e6;
-montage.labelold = {'Cz'};
+montage.labelorg = {'Cz'};
 montage.labelnew = {'Cz'};
-montage.chanunitold = {'V'};
+montage.chanunitorg = {'V'};
 montage.chanunitnew = {'uV'};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -20,7 +20,7 @@ assert(isequal(output, montage)); % it should not have changed
 
 output = ft_apply_montage(montage, montage, 'inverse', 1);
 assert(isequal(output.tra, 1)); % this should be an identity transform
-assert(isequal(output.chanunitold, output.chanunitnew));
+assert(isequal(output.chanunitorg, output.chanunitnew));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

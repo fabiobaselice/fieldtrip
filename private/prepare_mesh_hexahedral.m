@@ -26,7 +26,7 @@ cfg.background  = ft_getopt(cfg, 'background', 0);
 if isempty(cfg.tissue)
   mri = ft_datatype_segmentation(mri, 'segmentationstyle', 'indexed');
   fn = fieldnames(mri);
-  for i = 1:numel(fn)
+  for i = 1:numel(fn),
     if (numel(mri.(fn{i})) == prod(mri.dim)) && (~strcmp(fn{i}, 'inside'))
       segfield = fn{i};
     end
@@ -118,10 +118,10 @@ if (cfg.resolution ~= 1)
     
     seg_array = [seg_array, seg_build.anatomy(:)];
     
-    clear seg_reslice
+    clear seg_reslice;
   end
   
-  [max_seg, seg_build.seg] = max(seg_array, [], 2);
+  [max_seg seg_build.seg] = max(seg_array, [], 2);
   
   clear max_seg seg_array;
   
@@ -129,33 +129,35 @@ if (cfg.resolution ~= 1)
   seg_build.seg = seg_indices(seg_build.seg);
   seg_build.transform = mri.transform;
   
-  clear seg_build.anatomy
+  clear seg_build.anatomy;
 else
   seg_build.seg = seg;
   seg_build.dim = mri.dim;
   
-  clear seg
+  clear seg;
 end
 
 % ensure that the segmentation is binary and that there is a single contiguous region
 % FIXME is this still needed when it is already binary?
 %seg = volumethreshold(seg, 0.5, tissue);
 
-% the following requires the simbio toolbox to be on the path
 ft_hastoolbox('simbio', 1);
 
 % build the mesh
+
 mesh = build_mesh_hexahedral(cfg, seg_build);
 
+% converting position of meshpoints to the head coordinate system
+
 if (cfg.resolution ~= 1)
-  mesh.pos = cfg.resolution * mesh.pos;
+  mesh.pnt = cfg.resolution * mesh.pnt;
 end
 
-% converting position of meshpoints to the head coordinate system
-mesh.pos = ft_warp_apply(mri.transform, mesh.pos, 'homogeneous');
+mesh.pnt = ft_warp_apply(mri.transform, mesh.pnt, 'homogeneous');
 
 labels = mesh.labels;
-mesh = rmfield(mesh, 'labels');
+
+clear mesh.labels;
 
 mesh.tissue = zeros(size(labels));
 numlabels = size(unique(labels), 1);
@@ -166,11 +168,10 @@ for i = 1:numlabels
   mesh.tissuelabel{i} = tissue{i};
 end
 
+
 end % function
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% SUBFUNCTIONS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% subfunctions %%
 
 function mesh = build_mesh_hexahedral(cfg, mri)
 
@@ -201,15 +202,19 @@ fprintf('Dimensions of the segmentation after restriction to bounding-box: %i %i
 mesh.hex = create_elements(x_dim, y_dim, z_dim);
 fprintf('Created elements...\n' )
 
+
 % create nodes
 
-mesh.pos = create_nodes(x_dim, y_dim, z_dim);
+mesh.pnt = create_nodes(x_dim, y_dim, z_dim);
 fprintf('Created nodes...\n' )
 
-if shift < 0 || shift > 0.3
+
+if(shift < 0 | shift > 0.3)
   error('Please choose a shift parameter between 0 and 0.3!');
-elseif shift > 0
-  mesh.pos = shift_nodes(mesh.pos, mesh.hex, labels, shift, x_dim, y_dim, z_dim);
+elseif(shift > 0)
+  
+  mesh.pnt = shift_nodes(mesh.pnt, mesh.hex, labels, shift, x_dim, y_dim, z_dim);
+  
 end
 
 %background = 1;
@@ -224,8 +229,8 @@ end
 
 % delete unused nodes
 [C, ia, ic] = unique(mesh.hex(:));
-mesh.pos = mesh.pos(C, :, :, :);
-mesh.pos = mesh.pos + repmat(shift_coord, size(mesh.pos, 1), 1);
+mesh.pnt = mesh.pnt(C, :, :, :);
+mesh.pnt = mesh.pnt + repmat(shift_coord, size(mesh.pnt, 1), 1);
 mesh.hex(:) = ic;
 
 end % subfunction
@@ -252,10 +257,10 @@ b = 1:((x_dim+1)*(y_dim));
 % x_dim+1)
 b = b(mod(b, (x_dim+1)) ~= 0);
 % repeat offset to make it fit the number of elements
-b = repmat(b, 1, z_dim);
+b = repmat(b, 1, (z_dim));
 
 % create vector accounting for the offset of the nodes in z-direction
-c = fix( (0:(x_dim*y_dim*z_dim-1)) / (x_dim*y_dim)) * (x_dim+1)*(y_dim+1);
+c = fix([0:((x_dim)*(y_dim)*(z_dim)-1)]/((x_dim)*(y_dim))) * (x_dim+1)*(y_dim+1);
 
 % create the elements by assigning the nodes to them. entries 1 through 4
 % describe the bottom square of the hexahedron, entries 5 through 8 the top
@@ -264,13 +269,13 @@ elements(:, 1) = b + c;
 elements(:, 2) = b + c + 1;
 elements(:, 3) = b + c + (x_dim+1) + 1;
 elements(:, 4) = b + c + (x_dim+1);
-elements(:, 5) = b + c + (x_dim+1) * (y_dim+1);
-elements(:, 6) = b + c + (x_dim+1) * (y_dim+1) + 1;
-elements(:, 7) = b + c + (x_dim+1) * (y_dim+1) + (x_dim+1) + 1;
-elements(:, 8) = b + c + (x_dim+1) * (y_dim+1) + (x_dim+1);
+elements(:, 5) = b + c + (x_dim + 1)*(y_dim+1);
+elements(:, 6) = b + c + (x_dim + 1)*(y_dim+1) + 1;
+elements(:, 7) = b + c + (x_dim + 1)*(y_dim+1) + (x_dim+1) + 1;
+elements(:, 8) = b + c + (x_dim + 1)*(y_dim+1) + (x_dim+1);
 clear b;
 clear c;
-end % subfunction
+end %subfunction
 
 % function creating the nodes and assigning coordinates in the
 % [0, x_dim]x[0, y_dim]x[0, z_dim] box. for details on the node-numbering see
@@ -278,19 +283,20 @@ end % subfunction
 function nodes = create_nodes(x_dim, y_dim, z_dim)
 nodes = zeros(((x_dim+1)*(y_dim+1)*(z_dim + 1)), 3);
 % offset vector for node coordinates
-b = 0:((x_dim+1)*(y_dim+1)*(z_dim+1)-1);
+b = [0:((x_dim+1)*(y_dim+1)*(z_dim+1)-1)];
 
 % assign coordinates within the box
 nodes(:, 1) = mod(b, (x_dim+1));
 nodes(:, 2) = mod(fix(b/(x_dim+1)), (y_dim+1));
 nodes(:, 3) = fix(b/((x_dim + 1)*(y_dim+1)));
 
-clear b
+clear b;
 
-end % subfunction
+end
 
 % function shifting the nodes
 function nodes = shift_nodes(points, hex, labels, sh, x_dim, y_dim, z_dim)
+cfg = [];
 fprintf('Applying shift %f\n', sh);
 nodes = points;
 
@@ -370,7 +376,7 @@ for l = 1:size(unique(labels), 1)
 end
 
 % fill up the last column with the amount of background labels
-distribution(:, (size(unique(labels), 1))) = 8 - sum(distribution(:, 1:size(unique(labels), 1)),2);
+distribution(:, (size(unique(labels), 1))) = 8 - sum(distribution(:, 1:size(unique(labels), 1))');
 
 % how many different labels are there around each node
 distsum = sum(distribution>0, 2);
@@ -395,6 +401,7 @@ centroids(size(centroids, 1) +1, :) = 0;
 tbc = zeros(size(surroundinglabels));
 % helper matrix, c(i, j, k) is one when surroundinglabels(i, j) == k
 for i = 1:size(unique(labels), 1)+1
+  c = zeros(size(surroundinglabels, 2), size(unique(labels), 1)+1);
   if (i == size(unique(labels), 1)+1)
     c = surroundinglabels == 0;
   else
@@ -421,8 +428,7 @@ end
 %     for i = 1:size(unique(labels), 1)+1
 %     tbc(ismember(minpos, i) == 1, :) = c(ismember(minpos, i) == 1, :, i);
 %     end
-
-clear c
+clear c;
 
 % delete cases in which we don't have a real minimum
 tbcsum = sum(tbc, 2);
@@ -443,15 +449,16 @@ surroundingconsidered(nodes(b, 3) > 0, 5) = (offset(nodes(b, 3) > 0, 1) - (x_dim
 surroundingconsidered(nodes(b, 3) > 0, 6) = (offset(nodes(b, 3) > 0, 1) - (x_dim)*(y_dim) - 1).*tbc(nodes(b, 3) > 0, 6);
 surroundingconsidered(nodes(b, 3) > 0, 7) = (offset(nodes(b, 3) > 0, 1) - (x_dim)*(y_dim) - x_dim).*tbc(nodes(b, 3) > 0, 7);
 surroundingconsidered((nodes(b, 3) > 0) & (nodes(b, 2) > 0), 8) = (offset((nodes(b, 3) > 0) & (nodes(b, 2) > 0), 1) - (x_dim)*(y_dim) - (x_dim) -1).*tbc((nodes(b, 3) > 0) & (nodes(b, 2) > 0), 8);
-%clear surrounding
-clear tbc
+%clear surrounding;
+clear tbc;
 
 tbcsum(tbcsum == 8) = 0;
 tbcsum(tbcsum == 4) = 0;
 tbcsum((distsum>2) & (mins > 1)) = 0;
 
-clear distsum
+clear distsum;
 % get the surrounding elements which are to be considered for the shift
+
 
 % use the dummy centroid to make computations easier
 surroundingconsidered(surroundingconsidered == 0) = size(centroids, 1);
@@ -471,4 +478,7 @@ centroidcomb(tbcsum ~= 0, 3) = centroidcomb(tbcsum ~= 0, 3)./tbcsum(tbcsum ~= 0)
 nodes(tbcsum == 0, :) = points(tbcsum == 0, :);
 nodes(tbcsum ~= 0, :) = (1-sh)*nodes(tbcsum ~= 0, :) + sh*centroidcomb(tbcsum ~= 0, :);
 
-end % subfunction
+end %subfunction
+
+
+

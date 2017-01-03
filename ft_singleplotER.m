@@ -24,7 +24,6 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %   cfg.ylim          = 'maxmin', 'maxabs', 'zeromax', 'minzero', or [ymin ymax] (default = 'maxmin')
 %   cfg.channel       = nx1 cell-array with selection of channels (default = 'all'),
 %                       see ft_channelselection for details
-%   cfg.title          = string, title of plot
 %   cfg.refchannel    = name of reference channel for visualising connectivity, can be 'gui'
 %   cfg.baseline      = 'yes','no' or [time1 time2] (default = 'no'), see ft_timelockbaseline
 %   cfg.baselinetype  = 'absolute' or 'relative' (default = 'absolute')
@@ -146,7 +145,6 @@ cfg.linestyle       = ft_getopt(cfg, 'linestyle',    '-');
 cfg.linewidth       = ft_getopt(cfg, 'linewidth',    0.5);
 cfg.maskstyle       = ft_getopt(cfg, 'maskstyle',    'box');
 cfg.channel         = ft_getopt(cfg, 'channel',      'all');
-cfg.title           = ft_getopt(cfg, 'title',        []);
 cfg.directionality  = ft_getopt(cfg, 'directionality',   []);
 cfg.figurename      = ft_getopt(cfg, 'figurename',       []);
 cfg.preproc         = ft_getopt(cfg, 'preproc', []);
@@ -649,14 +647,10 @@ if strcmp(cfg.interactive, 'yes')
 end
 
 % create title text containing channel name(s) and channel number(s):
-if ~isempty(cfg.title)
-  t = cfg.title;  
+if length(sellab) == 1
+  t = [char(cfg.channel) ' / ' num2str(sellab) ];
 else
-  if length(sellab) == 1
-    t = [char(cfg.channel) ' / ' num2str(sellab) ];
-  else
-    t = sprintf('mean(%0s)', join_str(',', cfg.channel));
-  end
+  t = sprintf('mean(%0s)', join_str(',', cfg.channel));
 end
 h = title(t,'fontsize', cfg.fontsize);
 

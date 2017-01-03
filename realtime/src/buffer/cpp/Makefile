@@ -39,9 +39,6 @@ ifeq "$(UNAME)" "Linux"
 	ifeq "$(MACHINE)" "armv6l"
 		LDLIBS += -ldl -lrt
 	endif
-	ifeq "$(MACHINE)" "armv7l"
-		LDLIBS += -ldl -lrt
-	endif
 endif
 
 ifeq "$(UNAME)" "Darwin"

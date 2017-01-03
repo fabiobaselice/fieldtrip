@@ -1,6 +1,6 @@
 function test_tutorial_beamformingextended
 
-% MEM 5gb
+% MEM 3gb
 % WALLTIME 00:30:00
 
 % TEST test_beamforming_extended
@@ -53,28 +53,27 @@ freq_exp.cumsumcnt = freq_cmb.cumsumcnt(cfg.trials);
 %%foward model and lead field
 
 mri = ft_read_mri(fullfile(mridir, 'subjectK.mri'));
-% cfg = [];
-% [segmentedmri] = ft_volumesegment(cfg, mri);
-% 
+cfg = [];
+[segmentedmri] = ft_volumesegment(cfg, mri);
+
 oldsegmented = load(fullfile(mridir, 'segmentedmri.mat'));
-segmentedmri = oldsegmented.segmentedmri;
-% 
-% % check whether the segmentation gives results of more than 99% consistency
-% assert(max(abs(oldsegmented.segmentedmri.gray(:)-segmentedmri.gray(:))) < .01, 'Gray matter segmentation differs from stored data')
-% assert(max(abs(oldsegmented.segmentedmri.csf(:)-segmentedmri.csf(:))) < .01, 'CSF segmentation differs from stored data')
-% assert(max(abs(oldsegmented.segmentedmri.white(:)-segmentedmri.white(:))) < .01, 'White matter segmentation differs from stored data')
-% % transformation should be absolutely identical
-% assert(isequal(oldsegmented.segmentedmri.transform, segmentedmri.transform), 'Transform differs from stored data')
-% 
-% %save segmentedmri segmentedmri
-% 
-% % add anatomical information to the segmentation
-% segmentedmri.transform = mri.transform;
-% segmentedmri.anatomy   = mri.anatomy;
-% % call ft_sourceplot
-% cfg = [];
-% cfg.funparameter = 'gray';
-% ft_sourceplot(cfg,segmentedmri);
+
+% check whether the segmentation gives results of more than 99% consistency
+assert(max(abs(oldsegmented.segmentedmri.gray(:)-segmentedmri.gray(:))) < .01, 'Gray matter segmentation differs from stored data')
+assert(max(abs(oldsegmented.segmentedmri.csf(:)-segmentedmri.csf(:))) < .01, 'CSF segmentation differs from stored data')
+assert(max(abs(oldsegmented.segmentedmri.white(:)-segmentedmri.white(:))) < .01, 'White matter segmentation differs from stored data')
+% transformation should be absolutely identical
+assert(isequal(oldsegmented.segmentedmri.transform, segmentedmri.transform), 'Transform differs from stored data')
+
+%save segmentedmri segmentedmri
+
+% add anatomical information to the segmentation
+segmentedmri.transform = mri.transform;
+segmentedmri.anatomy   = mri.anatomy;
+% call ft_sourceplot
+cfg = [];
+cfg.funparameter = 'gray';
+ft_sourceplot(cfg,segmentedmri);
 
 % create ht head model from the segmented brain surface
 cfg = [];
@@ -103,7 +102,7 @@ ft_plot_sens(freq_cmb.grad);
 
 cfg         = [];
 cfg.grid    = sourcemodel;
-cfg.headmodel = hdm;
+cfg.vol     = hdm;
 cfg.channel = {'MEG'};
 cfg.grad    = freq_cmb.grad;
 sourcemodel_lf     = ft_prepare_leadfield(cfg, freq_cmb);
@@ -116,7 +115,7 @@ cfg.grad              = freq_cmb.grad;
 cfg.method            = 'dics';
 cfg.keeptrials        = 'yes';
 cfg.grid              = sourcemodel_lf;
-cfg.headmodel         = hdm;
+cfg.vol               = hdm;
 cfg.keeptrials        = 'yes';
 cfg.dics.lambda       = '5%';
 cfg.dics.keepfilter   = 'yes';
@@ -140,13 +139,14 @@ template_mri = ft_read_mri(templatefile);
 template_mri.coordsys = 'spm';
 
 cfg              = [];
-cfg.parameter    = 'pow';
+cfg.voxelcoord   = 'no';
+cfg.parameter    = 'avg.pow';
 cfg.interpmethod = 'nearest';
 source_diff_int  = ft_sourceinterpolate(cfg, source_diff, template_mri);
 
 cfg               = [];
 cfg.method        = 'slice';
-cfg.funparameter  = 'pow';
+cfg.funparameter  = 'avg.pow';
 cfg.maskparameter = cfg.funparameter;
 cfg.funcolorlim   = [0.0 1.2];
 cfg.opacitylim    = [0.0 1.2];
@@ -187,7 +187,7 @@ cfg                 = [];
 cfg.method          = 'dics';
 cfg.refchan         = 'EMGlft';
 cfg.frequency       = 20;
-cfg.headmodel       = hdm;
+cfg.vol             = hdm;
 cfg.grid            = sourcemodel;
 source_coh_lft      = ft_sourceanalysis(cfg, freq_csd);
 
@@ -200,6 +200,7 @@ template_mri = ft_read_mri(templatefile);
 template_mri.coordsys = 'spm';
 
 cfg              = [];
+cfg.voxelcoord   = 'no';
 cfg.parameter    = 'coh';
 cfg.interpmethod = 'nearest';
 source_coh_int   = ft_sourceinterpolate(cfg, source_coh_lft, template_mri);

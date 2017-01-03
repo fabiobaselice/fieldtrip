@@ -53,9 +53,6 @@ function [elec_realigned] = ft_electroderealign(cfg, elec_original)
 %                        'nonlin3'         apply a 3rd order non-linear warp
 %                        'nonlin4'         apply a 4th order non-linear warp
 %                        'nonlin5'         apply a 5th order non-linear warp
-%                        'dykstra2012'     non-linear wrap only for headshape
-%                                          method useful for projecting ECoG onto
-%                                          cortex hull.
 %   cfg.channel        = Nx1 cell-array with selection of channels (default = 'all'),
 %                        see  FT_CHANNELSELECTION for details
 %   cfg.fiducial       = cell-array with the name of three fiducials used for
@@ -88,21 +85,7 @@ function [elec_realigned] = ft_electroderealign(cfg, elec_original)
 %                        single triangulated boundary, or a Nx3 matrix with surface
 %                        points
 %
-% If you want to align ECoG electrodes to the pial surface, you first need to
-% compute the cortex hull with FT_PREPARE_MESH. dykstra2012 uses algorithm
-% described in Dykstra et al. (2012, Neuroimage) in which electrodes are
-% projected onto pial surface while minimizing the displacement of the
-% electrodes from original location and maintaining the grid shape. It relies
-% on the optimization toolbox.
-%   cfg.method         = 'headshape'
-%   cfg.warp           = 'dykstra2012'
-%   cfg.headshape      = a filename containing headshape, a structure containing a
-%                        single triangulated boundary, or a Nx3 matrix with surface
-%                        points
-%   cfg.feedback       = 'yes' or 'no' (feedback includes the output of the iteration
-%                        procedure.
-%
-% See also FT_READ_SENS, FT_VOLUMEREALIGN, FT_INTERACTIVEREALIGN, FT_PREPARE_MESH
+% See also FT_READ_SENS, FT_VOLUMEREALIGN, FT_INTERACTIVEREALIGN
 
 % Copyright (C) 2005-2015, Robert Oostenveld
 %
@@ -190,11 +173,11 @@ switch cfg.method
 end % switch cfg.method
 
 if strcmp(cfg.method, 'fiducial') && isfield(cfg, 'warp') && ~isequal(cfg.warp, 'rigidbody')
-  warning('The method ''fiducial'' implies a rigid body tramsformation. See also http://bugzilla.fieldtriptoolbox.org/show_bug.cgi?id=1722');
+  warning('The method ''fiducial'' implies a rigid body tramsformation. See also http://bugzilla.fcdonders.nl/show_bug.cgi?id=1722');
   cfg.warp = 'rigidbody';
 end
 if strcmp(cfg.method, 'fiducial') && isfield(cfg, 'warp') && ~isequal(cfg.warp, 'rigidbody')
-  warning('The method ''interactive'' implies a rigid body transformation. See also http://bugzilla.fieldtriptoolbox.org/show_bug.cgi?id=1722');
+  warning('The method ''interactive'' implies a rigid body tramsformation. See also http://bugzilla.fcdonders.nl/show_bug.cgi?id=1722');
   cfg.warp = 'rigidbody';
 end
 
@@ -269,12 +252,9 @@ if useheadshape
   % get the surface describing the head shape
   if isstruct(cfg.headshape) && isfield(cfg.headshape, 'hex')
     cfg.headshape = fixpos(cfg.headshape);
-    fprintf('extracting surface from hexahedral mesh\n');
     headshape = mesh2edge(cfg.headshape);
-    headshape = poly2tri(headshape);
   elseif isstruct(cfg.headshape) && isfield(cfg.headshape, 'tet')
     cfg.headshape = fixpos(cfg.headshape);
-    fprintf('extracting surface from tetrahedral mesh\n');
     headshape = mesh2edge(cfg.headshape);
   elseif isstruct(cfg.headshape) && isfield(cfg.headshape, 'tri')
     cfg.headshape = fixpos(cfg.headshape);
@@ -299,8 +279,9 @@ end
 % convert all labels to lower case for string comparisons
 % this has to be done AFTER keeping the original labels and positions
 if strcmp(cfg.casesensitive, 'no')
-  elec.label = lower(elec.label);
-  cfg.channel = lower(cfg.channel);
+  for i=1:length(elec.label)
+    elec.label{i} = lower(elec.label{i});
+  end
   if usetarget
     for j=1:length(target)
       for i=1:length(target(j).label)
@@ -309,8 +290,6 @@ if strcmp(cfg.casesensitive, 'no')
     end
   end
 end
-[cfgsel, datsel] = match_str(cfg.channel, elec.label);
-label_original = elec_original.label(datsel);
 
 % start with an empty structure, this will be returned at the end
 norm = [];
@@ -376,21 +355,19 @@ elseif strcmp(cfg.method, 'headshape')
   
   % determine electrode selection and overlapping subset for warping
   cfg.channel = ft_channelselection(cfg.channel, elec.label);
+  
+  % make subselection of electrodes
   [cfgsel, datsel] = match_str(cfg.channel, elec.label);
   elec.label   = elec.label(datsel);
   elec.elecpos = elec.elecpos(datsel,:);
   
+  fprintf('warping electrodes to skin surface... '); % the newline comes later
+  [norm.elecpos, norm.m] = ft_warp_optim(elec.elecpos, headshape, cfg.warp);
   norm.label = elec.label;
-  if strcmp(lower(cfg.warp), 'dykstra2012')
-    norm.elecpos = ft_warp_dykstra2012(elec.elecpos, headshape, cfg.feedback);
-  else
-    fprintf('warping electrodes to skin surface... '); % the newline comes later
-    [norm.elecpos, norm.m] = ft_warp_optim(elec.elecpos, headshape, cfg.warp);
-    
-    dpre  = ft_warp_error([],     elec.elecpos, headshape, cfg.warp);
-    dpost = ft_warp_error(norm.m, elec.elecpos, headshape, cfg.warp);
-    fprintf('mean distance prior to warping %f, after warping %f\n', dpre, dpost);
-  end
+  
+  dpre  = ft_warp_error([],     elec.elecpos, headshape, cfg.warp);
+  dpost = ft_warp_error(norm.m, elec.elecpos, headshape, cfg.warp);
+  fprintf('mean distance prior to warping %f, after warping %f\n', dpre, dpost);
   
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif strcmp(cfg.method, 'fiducial')
@@ -432,7 +409,7 @@ elseif strcmp(cfg.method, 'fiducial')
   elec.elecpos   = elec.elecpos(datsel,:);
   
   if length(cfg.fiducial)~=3
-    error('you must specify exactly three fiducials');
+    error('you must specify exaclty three fiducials');
   end
   
   % do case-insensitive search for fiducial locations
@@ -563,14 +540,9 @@ elseif strcmp(cfg.method, 'interactive')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif strcmp(cfg.method, 'project')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % determine electrode selection
-  cfg.channel = ft_channelselection(cfg.channel, elec.label);
-  [cfgsel, datsel] = match_str(cfg.channel, elec.label);
-  elec.label     = elec.label(datsel);
-  elec.elecpos   = elec.elecpos(datsel,:);
-  
-  norm.label = elec.label;
-  [dum, norm.elecpos] = project_elec(elec.elecpos, headshape.pos, headshape.tri);
+  [dum, prj] = project_elec(elec.elecpos, headshape.pos, headshape.tri);
+  % replace the electrodes with the projected version
+  elec.elecpos = prj;
   
 else
   error('unknown method');
@@ -581,25 +553,18 @@ end % if method
 % electrode labels by their case-sensitive original values
 switch cfg.method
   case {'template', 'headshape'}
-    if strcmp(lower(cfg.warp), 'dykstra2012')
-      elec_realigned = norm;
-      elec_realigned.label = label_original;
-      
-    else
-      % the transformation is a linear or non-linear warp, i.e. a vector
-      try
-        % convert the vector with fitted parameters into a 4x4 homogenous transformation
-        % apply the transformation to the original complete set of sensors
-        elec_realigned = ft_transform_sens(feval(cfg.warp, norm.m), elec_original);
-      catch
-        % the previous section will fail for nonlinear transformations
-        elec_realigned.label = label_original;
-        try, elec_realigned.elecpos = ft_warp_apply(norm.m, elec_original.elecpos, cfg.warp); end
-      end
-      % remember the transformation
-      elec_realigned.(cfg.warp) = norm.m;
-      
+    % the transformation is a linear or non-linear warp, i.e. a vector
+    try
+      % convert the vector with fitted parameters into a 4x4 homogenous transformation
+      % apply the transformation to the original complete set of sensors
+      elec_realigned = ft_transform_sens(feval(cfg.warp, norm.m), elec_original);
+    catch
+      % the previous section will fail for nonlinear transformations
+      elec_realigned.label   = elec_original.label;
+      try, elec_realigned.elecpos = ft_warp_apply(norm.m, elec_original.elecpos, cfg.warp); end
     end
+    % remember the transformation
+    elec_realigned.(cfg.warp) = norm.m;
     
   case  {'fiducial' 'interactive'}
     % the transformation is a 4x4 homogenous matrix
@@ -610,8 +575,7 @@ switch cfg.method
     
   case 'project'
     % nothing to be done
-    elec_realigned = norm;
-    elec_realigned.label = label_original;
+    elec_realigned = elec;
     
   otherwise
     error('unknown method');

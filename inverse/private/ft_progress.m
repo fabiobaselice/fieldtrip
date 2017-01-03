@@ -69,14 +69,10 @@ persistent closing
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin>1 && ischar(varargin{1}) && strcmp(varargin{1}, 'init')
-  % reset these to the defaults
-  a  = 0;
-  h  = 0;
-  p  = 0;
-  t  = 'none';
-  s  = '';
-  t0 = [];
-  p0 = [];
+  a = 0;
+  p = 0;
+  h = 0;
+  c = 0;
   strlen = 0;
   tprev = tic();
   lastArgin = [];
@@ -270,7 +266,7 @@ else
       strlen = strlentmp - strlen;
     end
 
-% the following options are unused in FieldTrip (as of April 17 2012), and seem
+% the following options are unused in fieldtrip (as of April 17 2012), and seem
 % semantically incompatible with the implementation of the \b-ing, so I
 % think removal is appropriate.
 %

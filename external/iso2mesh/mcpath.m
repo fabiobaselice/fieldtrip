@@ -5,7 +5,7 @@ function binname=mcpath(fname)
 % get full executable path by prepending a command directory path
 % parameters:
 %
-% author: Qianqian Fang, <q.fang at neu.edu>
+% author: Qianqian Fang (fangq<at> nmr.mgh.harvard.edu)
 %
 % input:
 %    fname: input, a file name string

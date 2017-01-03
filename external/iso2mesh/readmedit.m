@@ -4,7 +4,7 @@ function [node,elem,face]=readmedit(filename)
 %
 % read Medit mesh format
 %
-% author: Qianqian Fang, <q.fang at neu.edu>
+% author: Qianqian Fang (fangq<at> nmr.mgh.harvard.edu)
 %
 % input:
 %    fname: name of the medit data file

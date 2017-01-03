@@ -81,7 +81,7 @@ cfg = d.cfg;
 % TODO: find id's for errors (gerp warning -> sort.)
 f = @() ft_multiplotTFR(cfg, freq);
 % assertExceptionThrown(f, 'fieldtrip:dimord')
-% FieldTrip error identifiers not yet decided upon, keeping code for later use
+% fieldtrip error identifiers not yet decided upon, keeping code for later use
 try
   feval(f)
 catch exception
@@ -107,7 +107,7 @@ cfg = d.cfg;
 % TODO: find id's for errors (gerp warning -> sort.)
 f = @() ft_multiplotTFR(cfg, freq);
 % assertExceptionThrown(f, 'fieldtrip:dimord')
-% FieldTrip error identifiers not yet decided upon, keeping code for later use
+% fieldtrip error identifiers not yet decided upon, keeping code for later use
 try
   feval(f)
 catch exception

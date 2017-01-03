@@ -44,13 +44,10 @@ ifeq "$(UNAME)" "Linux"
     ifeq "$(MACHINE)" "x86_64"
 		    BINDIR = $(FIELDTRIP)/realtime/bin/glnxa64
     endif
-    # This is Debian 6.0.5 running on the Raspberry Pi. I have not yet been
-    # able to test whether the binary actually works, that requires having
-    # the amplifier hooked up to the R-Pi.
     ifeq "$(MACHINE)" "armv6l"
-		    BINDIR = $(FIELDTRIP)/realtime/bin/raspberrypi
-    endif
-    ifeq "$(MACHINE)" "armv7l"
+		    # This is Debian 6.0.5 running on the Raspberry Pi. I have not yet been
+		    # able to test whether the binary actually works, that requires having
+		    # the amplifier hooked up to the R-Pi.
 		    BINDIR = $(FIELDTRIP)/realtime/bin/raspberrypi
     endif
 endif

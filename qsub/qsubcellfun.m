@@ -28,7 +28,6 @@ function varargout = qsubcellfun(fname, varargin)
 %   display        = 'yes' or 'no', whether the nodisplay option should be passed to MATLAB (default = 'no', meaning nodisplay)
 %   jvm            = 'yes' or 'no', whether the nojvm option should be passed to MATLAB (default = 'yes', meaning with jvm)
 %   rerunable      = 'yes' or 'no', whether the job can be restarted on a torque/maui/moab cluster (default = 'no')
-%   sleep          = number, time in seconds to wait between checks for job completion (default = 0.5 s)
 %
 % It is required to give an estimate of the time and memory requirements of
 % the individual jobs. The memory requirement of the MATLAB executable
@@ -73,7 +72,7 @@ function varargout = qsubcellfun(fname, varargin)
 % See also QSUBCOMPILE, QSUBFEVAL, CELLFUN, PEERCELLFUN, FEVAL, DFEVAL, DFEVALASYNC
 
 % -----------------------------------------------------------------------
-% Copyright (C) 2011-2016, Robert Oostenveld
+% Copyright (C) 2011-2015, Robert Oostenveld
 %
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -126,7 +125,6 @@ matlabcmd     = ft_getopt(optarg, 'matlabcmd', []);
 jvm           = ft_getopt(optarg, 'jvm', 'yes');
 whichfunction = ft_getopt(optarg, 'whichfunction');   % the complete filename to the function, including path
 rerunable     = ft_getopt(optarg, 'rerunable');       % the default is determined in qsubfeval
-sleep         = ft_getopt(optarg, 'sleep', 0.5);      % in seconds
 
 % skip the optional key-value arguments
 if ~isempty(optbeg)
@@ -238,7 +236,7 @@ end
 
 % running a compiled version in parallel takes no MATLAB licenses
 % auto compilation will be attempted if the total batch takes more than 30 minutes
-if (strcmp(compile, 'auto') && (numjob*timreq/3600)>0.5) || istrue(compile)
+if istrue(compile) || (strcmp(compile, 'auto') && (numjob*timreq/3600)>0.5)
   try
     % try to compile into a stand-allone application
     fcomp = qsubcompile(fname, 'batch', batch, 'batchid', batchid);
@@ -406,7 +404,7 @@ while (~all(collected))
     end  % if
   end % for
   
-  pausejava(sleep);
+  pausejava(0.1);
 end % while
 
 % ensure the output to have the same size/dimensions as the input

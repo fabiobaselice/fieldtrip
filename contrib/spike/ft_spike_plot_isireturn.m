@@ -56,10 +56,7 @@ function [cfg] = ft_spike_plot_isireturn(cfg, isih)
 %
 % $Id$
 
-% these are used by the ft_preamble/ft_postamble function and scripts
-ft_revision = '$Id$';
-ft_nargin   = nargin;
-ft_nargout  = nargout;
+revision = '$Id$';
 
 % do the general setup of the function
 ft_defaults

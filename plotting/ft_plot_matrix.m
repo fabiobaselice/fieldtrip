@@ -115,17 +115,6 @@ if ischar(hlim)
   end % switch
 end % if ischar
 
-if hlim(1)==hlim(2)
-  if hlim(1)==0
-    % automatic scaling not possible
-    hlim = [-1 1];
-  else
-    % adjust the scaling a bit
-    hlim(1) = 0.8*hlim(1);
-    hlim(2) = 1.2*hlim(2);
-  end
-end
-
 if ischar(vlim)
   switch vlim
     case 'maxmin'
@@ -138,17 +127,6 @@ if ischar(vlim)
   end % switch
 end % if ischar
 
-if vlim(1)==vlim(2)
-  if vlim(1)==0
-    % automatic scaling not possible
-    vlim = [-1 1];
-  else
-    % adjust the scaling a bit
-    vlim(1) = 0.8*vlim(1);
-    vlim(2) = 1.2*vlim(2);
-  end
-end
-
 if ischar(clim)
   switch clim
     case 'maxmin'
@@ -160,17 +138,6 @@ if ischar(clim)
       error('unsupported option for clim')
   end % switch
 end % if ischar
-
-if clim(1)==clim(2)
-  if clim(1)==0
-    % automatic scaling not possible
-    clim = [-1 1];
-  else
-    % adjust the scaling a bit
-    clim(1) = 0.8*clim(1);
-    clim(2) = 1.2*clim(2);
-  end
-end
 
 % these must be floating point values and not integers, otherwise the scaling fails
 hdat = double(hdat);
@@ -190,11 +157,7 @@ end
 
 if isempty(width),
   width = hlim(2)-hlim(1);
-  if length(hdat)>1
-    width = width * length(hdat)/(length(hdat)-1);
-  else
-    width = 1;
-  end
+  width = width * length(hdat)/(length(hdat)-1);
   autowidth = true;
 else
   autowidth = false;
@@ -202,11 +165,7 @@ end
 
 if isempty(height),
   height = vlim(2)-vlim(1);
-  if length(vdat)>1
-    height = height * length(vdat)/(length(vdat)-1);
-  else
-    height = 1;
-  end
+  height = height * length(vdat)/(length(vdat)-1);
   autoheight = true;
 else
   autoheight = false;
@@ -258,7 +217,7 @@ if ~isempty(highlight)
         set(h, 'AlphaDataMapping', 'scaled');
         alim([0 1]);
       end
-      
+    
     case 'saturation'
       % This approach changes the color of pixels to white, regardless of colormap, without using opengl
       % It does by converting by:
@@ -267,10 +226,10 @@ if ~isempty(highlight)
       % 3) for to-be-masked-pixels, set saturation to 0 and value to 1 (hue is irrelevant when they are)
       % 4) convert the hsv values back to rgb values
       % 5) plot these values
-      
+     
       % enforce mask properties (satmask is 0 when a pixel needs to be masked, 1 if otherwise)
-      satmask = round(double(highlight));   % enforce binary white-masking, the hsv approach cannot be used for 'white-shading'
-      satmask(isnan(cdat)) = false;         % make sure NaNs are plotted as white pixels, even when using non-integer mask values
+      satmask = round(highlight); % enforce binary white-masking, the hsv approach cannot be used for 'white-shading'
+      satmask(isnan(cdat)) = false; % Make sure NaNs are plotted as white pixels, even when using non-integer mask values
       
       % do 1, by converting the data-values to zero-based indices of the colormap
       ncolors = size(get(gcf,'colormap'),1); % determines range of index, if a figure has been created by the caller function, gcf changes nothing, if not, a figure is created (which the below would do otherwise)
@@ -290,7 +249,7 @@ if ~isempty(highlight)
       % do 5
       h = imagesc(hdat, vdat, rgbcdat,clim);
       set(h,'tag',tag);
-      
+
     case 'outline'
       % the significant voxels could be outlined with a black contour
       % plot outline
@@ -325,4 +284,4 @@ if box
   ft_plot_box(boxposition);
 end
 
-warning(ws); % revert to original state
+warning(ws); %revert to original state

@@ -24,13 +24,10 @@ function montage = megplanar_sincos(cfg, grad)
 % $Id$
 
 lab   = grad.label;
-type  = grad.chantype;
-
 % ensure correct order
 % cfg.channel       = ft_channelselection(cfg.channel, lab);
 [chansel, labsel] = match_str(cfg.channel, lab);
 lab               = lab(labsel);
-type              = type(labsel);
 
 % we need to ensure that this one is in cfg.channel order - this is done in
 % ft_megplanar!
@@ -86,7 +83,5 @@ end
 % construct a montage, i.e. a simple linear projection matrix
 montage = [];
 montage.labelnew = cat(1, labelH(:), labelV(:));  % describes the rows
-montage.labelold = lab(:)';                       % describes the columns
-montage.chantypenew = repmat(type, [2 1]);
-montage.chantypeold = type;
+montage.labelorg = lab(:)';                       % describes the columns
 montage.tra      = cat(1, gradH, gradV);          % this is the linear projection matrix

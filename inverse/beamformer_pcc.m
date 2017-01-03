@@ -157,7 +157,6 @@ Nchan    = size(Cf,1);            % should equal Nmegchan + Nrefchan + Nsupchan
 Cmeg     = Cf(megchan,megchan);   %  the filter uses the csd between all MEG channels
 
 isrankdeficient = (rank(Cmeg)<size(Cmeg,1));
-rankCmeg = rank(Cmeg);
 
 % it is difficult to give a quantitative estimate of lambda, therefore also
 % support relative (percentage) measure that can be specified as string (e.g. '10%')
@@ -168,11 +167,17 @@ if ~isempty(lambda) && ischar(lambda) && lambda(end)=='%'
 end
 
 if projectnoise
-  % estimate the noise level in the covariance matrix by the smallest singular (non-zero) value
+  % estimate the noise power, which is further assumed to be equal and uncorrelated over channels
+  if isrankdeficient
+    % estimated noise floor is equal to or higher than lambda
+    noise = lambda;
+  else
+    % estimate the noise level in the covariance matrix by the smallest singular value
     noise = svd(Cmeg);
-    noise = noise(rankCmeg);
+    noise = noise(end);
     % estimated noise floor is equal to or higher than lambda
     noise = max(noise, lambda);
+  end
 end
 
 if realfilter

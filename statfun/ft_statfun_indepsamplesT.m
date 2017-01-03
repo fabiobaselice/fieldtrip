@@ -59,11 +59,11 @@ function [s, cfg] = ft_statfun_indepsamplesT(cfg, dat, design)
 % $Id$
 
 % set the defaults
-cfg.computestat    = ft_getopt(cfg, 'computestat', 'yes');
-cfg.computecritval = ft_getopt(cfg, 'computecritval', 'no');
-cfg.computeprob    = ft_getopt(cfg, 'computeprob', 'no');
-cfg.alpha          = ft_getopt(cfg, 'alpha', 0.05);
-cfg.tail           = ft_getopt(cfg, 'tail', 1);
+if ~isfield(cfg, 'computestat'),    cfg.computestat    = 'yes'; end
+if ~isfield(cfg, 'computecritval'), cfg.computecritval = 'no';  end
+if ~isfield(cfg, 'computeprob'),    cfg.computeprob    = 'no';  end
+if ~isfield(cfg, 'alpha'),          cfg.alpha          = 0.05;  end
+if ~isfield(cfg, 'tail'),           cfg.tail           = 1;     end
 
 % perform some checks on the configuration
 if strcmp(cfg.computeprob,'yes') && strcmp(cfg.computestat,'no')
@@ -74,15 +74,12 @@ if isfield(cfg,'uvar') && ~isempty(cfg.uvar)
     error('cfg.uvar should not exist for an independent samples statistic');
 end
 
-% perform some checks on the design and data
-sel1 = design(cfg.ivar,:)==1;
-sel2 = design(cfg.ivar,:)==2;
+% perform some checks on the design
+sel1 = find(design(cfg.ivar,:)==1);
+sel2 = find(design(cfg.ivar,:)==2);
 nreplc1 = sum(~isnan(dat(:,sel1)), 2);
 nreplc2 = sum(~isnan(dat(:,sel2)), 2);
 nrepl   = nreplc1 + nreplc2;
-hasnans1 = any(nreplc1<sum(sel1));
-hasnans2 = any(nreplc2<sum(sel2));
-
 if any(nrepl<size(design,2)),
   ft_warning('Not all replications are used for the computation of the statistic.');
 end;
@@ -93,21 +90,19 @@ df = nrepl - 2;
 
 if strcmp(cfg.computestat, 'yes')
   % compute the statistic use nanmean only if necessary
-  if hasnans1
+  if sum(any(isnan(dat(:,sel1))))
     avg1 = nanmean(dat(:,sel1), 2);
-    var1 = nanvar(dat(:,sel1), 0, 2);
+    var1 = nanstd(dat(:,sel1), 0, 2).^2;
   else
     avg1 = mean(dat(:,sel1), 2);
-    %var1 = var(dat(:,sel1), 0, 2);
-    var1 = (sum(dat(:,sel1).^2,2)-(avg1.^2).*nreplc1)./(nreplc1-1); % this achieves the same as the line above, but faster
+    var1 = std(dat(:,sel1), 0, 2).^2;
   end
-  if hasnans2
+  if sum(any(isnan(dat(:,sel2))))
     avg2 = nanmean(dat(:,sel2), 2);
-    var2 = nanvar(dat(:,sel2), 0, 2);
+    var2 = nanstd(dat(:,sel2), 0, 2).^2;
   else
     avg2 = mean(dat(:,sel2), 2);
-    %var2 = var(dat(:,sel2), 0, 2);
-    var2 = (sum(dat(:,sel2).^2,2)-(avg2.^2).*nreplc2)./(nreplc2-1);
+    var2 = std(dat(:,sel2), 0, 2).^2;
   end
  
   varc = (1./nreplc1 + 1./nreplc2).*((nreplc1-1).*var1 + (nreplc2-1).*var2)./df;

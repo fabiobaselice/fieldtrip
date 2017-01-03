@@ -1,10 +1,10 @@
-function openedge=surfedge(f,varargin)
+function openedge=surfedge(f)
 %
 % openedge=surfedge(f)
 %
 % find the edge of an open surface or surface of a volume
 %
-% author: Qianqian Fang, <q.fang at neu.edu>
+% author: Qianqian Fang (fangq<at> nmr.mgh.harvard.edu)
 % date: 2007/11/21
 %
 % input:
@@ -20,9 +20,6 @@ if(isempty(f))
     openedge=[];
     return;
 end
-
-opt=varargin2struct(varargin{:});
-findjunc=jsonopt('Junction',0,opt);
 
 if(size(f,2)==3)
     edges=[f(:,[1,2]);
@@ -42,18 +39,10 @@ edgesort=sort(edges,2);
 
 if(isoctavemesh)
         u=unique(jx);
-        if(size(f,2)==3 && findjunc)
-            qx=u(hist(jx,u)>2);
-        else
-	    qx=u(hist(jx,u)==1);
-        end
+	qx=u(hist(jx,u)==1);
 else
 	vec=histc(jx,1:max(jx));
-        if(size(f,2)==3 && findjunc)
-            qx=find(vec>2);
-        else
-	    qx=find(vec==1);
-        end
+	qx=find(vec==1);
 end
 openedge=edges(ix(qx),:);
 % node4=node4(ix(qx));

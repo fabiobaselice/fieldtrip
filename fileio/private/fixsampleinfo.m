@@ -13,7 +13,7 @@ if isfield(data, 'sampleinfo')
 end
 
 if ~isfield(data, 'cfg')
-  % FieldTrip raw data structures are expected to have a cfg
+  % fieldtrip raw data structures are expected to have a cfg
   data.cfg = [];
 end
 

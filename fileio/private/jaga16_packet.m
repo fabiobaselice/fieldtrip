@@ -2,7 +2,7 @@ function packet = jaga16_packet(buf, hastimestamp)
 
 % JAGA16_PACKET converts the JAGA16 byte stream into packets
 
-% Copyright (C) 2015-2016, Robert Oostenveld
+% Copyright (C) 2015 Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
@@ -22,18 +22,8 @@ function packet = jaga16_packet(buf, hastimestamp)
 %
 % $Id$
 
-buf = uint8(buf);
-if buf(1)==0
-  version = 0;
-  buf = typecast(buf, 'uint16');
-elseif buf(1)==3
-  version = 3;
-else
-  error('unsupported version of packet');
-end
-
 % the packet size is 1396 bytes with timestamp, 1388 without.
-if version==0 && hastimestamp
+if hastimestamp
   % this is for the files created by the Jinga-Hi MATLAB and Python code
   buf = reshape(buf, 4+6+16*43, []);
   packet.ts1     = buf(1,:);
@@ -48,7 +38,7 @@ if version==0 && hastimestamp
   packet.smp     = buf(10,:);
   % the remainder is the data for this 16*43 block
   packet.dat = reshape(buf(11:end,:), 16, []);
-elseif version==0
+else
   % this is for the raw UDP data stream, where everything is shifted by four uint16 values (8 bytes)
   buf = reshape(buf, 0+6+16*43, []);
   packet.ver     = buf(1,:);
@@ -59,21 +49,8 @@ elseif version==0
   packet.smp     = buf(6,:);
   % the remainder is the data for this 16*43 block
   packet.dat = reshape(buf(7:end,:), 16, []);
-elseif version==3
-  % this is for the raw UDP stream in version 3 format, each packet is 1388 bytes
-  packet.ver    = buf(1);
-  packet.nchan  = buf(2);
-  packet.diagnostic_word  = typecast(buf([3 4]), 'uint16');
-  packet.mode_word        = typecast(buf([5 6]), 'uint16');
-  packet.fsample          = typecast(buf([7 8]), 'uint16');
-  packet.smp              = typecast(buf([9:12]), 'uint32');
-  % the remainder is the data for this 16*43 block
-  packet.dat              = reshape(typecast(buf(13:end), 'uint16'), 16, []);
-  % these are not present in v3
-  packet.nbit   = 16;
-  packet.sec    = NaN;
 end
 
-assert(all(packet.ver==0 | packet.ver==3));
+assert(all(packet.ver==0));
 assert(all(packet.nchan==16));
 assert(all(packet.nbit==16));

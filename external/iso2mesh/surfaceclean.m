@@ -5,7 +5,7 @@ function f=surfaceclean(f,v)
 % remove surface patches that are located inside 
 %               the bounding box faces
 %
-% author: Qianqian Fang, <q.fang at neu.edu>
+% author: Qianqian Fang (fangq<at> nmr.mgh.harvard.edu)
 % date: 2008/04/08
 %
 % input: 

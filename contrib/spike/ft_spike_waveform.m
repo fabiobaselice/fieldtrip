@@ -55,10 +55,7 @@ function [wave,spike] = ft_spike_waveform(cfg,spike)
 %
 % $Id$
 
-% these are used by the ft_preamble/ft_postamble function and scripts
-ft_revision = '$Id$';
-ft_nargin   = nargin;
-ft_nargout  = nargout;
+revision = '$Id$';
 
 % do the general setup of the function
 ft_defaults

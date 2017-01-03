@@ -328,13 +328,8 @@ while(iline<length(file_words))
             otherwise    
                 for i=2:length(twords)
                     str=twords{i};
-                    if strcmpi(str, 'nan')
-                      val=NaN;
-                      stringd=false;
-                    else
-                      val=str2double(str);
-                      stringd=~isfinite(val);
-                    end
+                    val=str2double(str);
+                    stringd=~isfinite(val);
                     if(stringd)
                         j=j+1; twords{j}=str;
                     else

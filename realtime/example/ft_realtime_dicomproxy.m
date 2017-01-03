@@ -85,7 +85,7 @@ for n=1:N
     fclose(f);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % create a FieldTrip compatible header structure
+    % create a fieldtrip compatible header structure
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     hdr = [];
     hdr.nChans = prod(NH.dim);

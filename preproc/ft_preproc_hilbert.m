@@ -48,11 +48,6 @@ if nargin<2 || isempty(option)
   option = 'abs';
 end
 
-% preprocessing fails on channels that contain NaN
-if any(isnan(dat(:)))
-  ft_warning('FieldTrip:dataContainsNaN', 'data contains NaN values');
-end
-
 % use the non-conjugate transpose to be sure
 dat = transpose(hilbert(transpose(dat)));
 
