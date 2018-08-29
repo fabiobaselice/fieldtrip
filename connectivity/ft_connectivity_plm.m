@@ -13,12 +13,8 @@ function [p] = ft_connectivity_plm(input, varargin)
 %			across which to integrate
 %   fsample     =       sampling frequency, needed to convert bandwidth to number of bins
 %
-% The output p contains the phase slope index, v is a variance estimate
-% which only can be computed if the data contains leave-one-out samples,
-% and n is the number of repetitions in the input data. If the phase slope
-% index is positive, then the first chan (1st dim) becomes more lagged (or
-% less leading) with higher frequency, indicating that it is causally
-% driven by the second channel (2nd dim)
+% The output p contains the phase lag index in the [0, 1] range.
+% The output p is organized as a 3D matrix of nchan x  nchan x ntime signals
 %
 % See also FT_CONNECTIVITYANALYSIS
 
@@ -44,11 +40,19 @@ function [p] = ft_connectivity_plm(input, varargin)
 
 % the sequence of steps is as follows:
 %  - Hilbert transformation
-%  - convolve with complex conjugate
+%  - multiply with complex conjugate
 %  - fft
 %  - convert bandwidth parameter to number of bins
 %  - integrate over bandwidth
 
+% for k1=1:50
+% for k2=1:3
+% input{k1,k2}=randn(1024, 1);
+% end
+% end
+
+B = ft_getopt(varargin, 'bandwidth');
+fs = ft_getopt(varargin, 'f_sample');
 
 % NOTE BY JM: if the user inputs data with different length trials, the fft per trial is going 
 % to have different frequency resolutions, which is not good. Better to throw an error in that 
@@ -57,8 +61,26 @@ nsmp = cellfun('size', input, 2);
 assert(all(nsmp==nsmp(1)), 'currently there is no support for input, where the trials are of different length'); 
 
 for k = 1:numel(input)
-  input{k} = hilbert(input{k}')';
+  input{k} = hilbert(input{k});
 end
 
-% the rest continues here
+nchan=size(input,1);
+ntime=size(input,2);
+trial_length=length(input{1,1});
+ph_min=0.1;
+f=(fs/trial_length)*(0:(trial_length-1));
+f_integr=(abs(f)<B) | (abs(f-fs)<B);
+p=zeros(nchan, nchan, ntime);
 
+for ktime=1:ntime
+    for kchan1=1:(nchan-1)
+        for kchan2=(kchan1+1):nchan
+            temp=fft(input{kchan1, ktime}.*conj(input{kchan2, ktime}));    % NOTE BY FB: The inner cycle can be vectorized
+            temp(1)=temp(1).*(abs(angle(temp(1)))>ph_min);  % Volume conduction suppression
+            temp=(abs(temp)).^2;
+            p_temp=sum(temp(f_integr))./sum(temp);
+            p(kchan1, kchan2, ktime)=p_temp;
+            p(kchan2, kchan1, ktime)=p_temp;
+        end
+    end
+end
