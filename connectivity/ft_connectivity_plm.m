@@ -5,6 +5,7 @@ function [p] = ft_connectivity_plm(input, varargin)
 % the metric described in Baselice et al. "Phase Linearity Measurement:
 % a novel index for brain functional connectivity", IEEE Transactions
 % on Medical Imaging, 2018. Please reference the paper in case of use.
+% Version 1.1
 %
 % Use as
 %   [p] = ft_connectivity_plm(input, ...)
@@ -81,7 +82,7 @@ p=zeros(nchan, nchan, ntime);
 for ktime=1:ntime
     for kchan1=1:(nchan-1)
         for kchan2=(kchan1+1):nchan
-            temp=fft(input{ktime}(kchan1,:).*conj(input{ktime}(kchan2,:)));    % NOTE BY FB: The inner cycle can be vectorized
+            temp=fft( exp( 1i*angle( input{ktime}(kchan1,:).*conj(input{ktime}(kchan2,:)) ) ) );
             temp(1)=temp(1).*(abs(angle(temp(1)))>ph_min);  % Volume conduction suppression
             temp=(abs(temp)).^2;
             p_temp=sum(temp(f_integr))./sum(temp);
