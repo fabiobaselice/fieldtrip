@@ -45,6 +45,7 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %                  (estimates squared wpli)
 %     'wppc'       weighted pairwise phase consistency
 %     'corr'       Pearson correlation, support for timelock or raw data
+%     'plm'        phase linearity measurement
 %
 % Additional configuration options are
 %   cfg.channel    = Nx1 cell-array containing a list of channels which are
@@ -69,6 +70,7 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %   cfg.bandwidth   = scalar, needed for 
 %                      'psi', half-bandwidth of the integration across frequencies (in Hz), default is Rayleigh frequency
 %                      'plm', half-bandwidth of the integration window
+%   cfg.fsample = scalar, needed for 'plm', sampling frequency of the data in [Hz]
 %      
 % To facilitate data-handling and distributed computing you can use
 %   cfg.inputfile   =  ...
@@ -946,8 +948,8 @@ switch cfg.method
     
   case 'plm'
     % phase linearity measurement
-    optarg = {'bandwidth' cfg.bandwidth};
-    datout = ft_connectivity(plm, optarg{:});    
+    optarg = {'bandwidth', cfg.bandwidth, 'fsample', cfg.fsample};
+    datout = ft_connectivity_plm(data.(inparam), optarg{:});    
     varout = [];
 
     outdimord = 'chan_chan';
